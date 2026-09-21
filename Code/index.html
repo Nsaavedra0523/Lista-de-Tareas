@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tareas — Lista de pendientes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <h1>Tareas</h1>
+    <p class="date" id="today"></p>
+  </header>
+
+  <div class="composer">
+    <input id="input" type="text" placeholder="¿Qué necesitas hacer?" maxlength="120" autocomplete="off" aria-label="Nueva tarea">
+    <button id="add">Agregar</button>
+  </div>
+  <p class="error" id="error" role="alert"></p>
+
+  <div class="toolbar">
+    <div class="filters" role="group" aria-label="Filtrar tareas">
+      <button data-filter="all" aria-pressed="true">Todas</button>
+      <button data-filter="active" aria-pressed="false">Pendientes</button>
+      <button data-filter="done" aria-pressed="false">Completadas</button>
+    </div>
+    <span class="counter" id="counter"></span>
+  </div>
+
+  <ul class="list" id="list"></ul>
+  <div class="footer-bar" id="footerBar" hidden>
+    <button class="clear" id="clearDone">Eliminar completadas</button>
+  </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
