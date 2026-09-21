@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tareas — Lista de pendientes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F1EEE4; --surface:#FBF9F3; --ink:#1C2321; --ink-soft:#55605B;
+    --accent:#1F6F78; --accent-2:#C98A2C; --danger:#A8422F; --line:#C9C2AE;
+    box-sizing:border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#14181A; --surface:#1C2224; --ink:#ECE7DA; --ink-soft:#A2A99F;
+      --accent:#4FB8C4; --accent-2:#E3B15C; --danger:#E08060; --line:#333B3A;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#14181A; --surface:#1C2224; --ink:#ECE7DA; --ink-soft:#A2A99F;
+    --accent:#4FB8C4; --accent-2:#E3B15C; --danger:#E08060; --line:#333B3A;
+  }
+  *{ box-sizing:border-box; }
+  html,body{ height:100%; }
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:"IBM Plex Sans", system-ui, sans-serif; line-height:1.5;
+    display:flex; flex-direction:column; align-items:center;
+    padding:40px 20px;
+  }
+  .app{ width:100%; max-width:600px; }
+  header.top{ margin-bottom:28px; }
+  h1{ font-family:"Fraunces", Georgia, serif; font-weight:600; font-size:2rem; margin:0 0 6px; letter-spacing:-0.01em; }
+  .date{ color:var(--ink-soft); font-size:0.9rem; }
+
+  .composer{ display:flex; gap:10px; margin-bottom:8px; }
+  .composer input{
+    flex:1; padding:14px 16px; font:inherit; color:var(--ink);
+    background:var(--surface); border:1px solid var(--line); border-radius:4px;
+  }
+  .composer input:focus{ outline:2px solid var(--accent); outline-offset:1px; }
+  .composer button{
+    padding:0 20px; font:inherit; font-weight:500; cursor:pointer;
+    background:var(--accent); color:#fff; border:1px solid var(--accent); border-radius:4px;
+    transition:background .15s;
+  }
+  .composer button:hover{ background:var(--ink); border-color:var(--ink); }
+  .composer button:disabled{ opacity:.45; cursor:not-allowed; }
+  .error{ color:var(--danger); font-size:0.85rem; min-height:1.3em; margin-bottom:18px; }
+
+  .toolbar{
+    display:flex; justify-content:space-between; align-items:center;
+    border-bottom:1px solid var(--line); padding-bottom:12px; margin-bottom:6px; gap:16px; flex-wrap:wrap;
+  }
+  .filters{ display:flex; gap:4px; }
+  .filters button{
+    font:inherit; font-size:0.88rem; padding:5px 12px; cursor:pointer;
+    background:none; border:1px solid transparent; border-radius:3px; color:var(--ink-soft);
+  }
+  .filters button:hover{ color:var(--ink); }
+  .filters button[aria-pressed="true"]{ color:var(--ink); border-color:var(--line); background:var(--surface); }
+  .counter{ font-family:"IBM Plex Mono", monospace; font-size:0.82rem; color:var(--ink-soft); }
+
+  ul.list{ list-style:none; margin:0; padding:0; }
+  li.task{
+    display:flex; align-items:flex-start; gap:14px;
+    padding:15px 4px; border-bottom:1px solid var(--line);
+  }
+  .check{
+    flex:0 0 auto; width:21px; height:21px; margin-top:1px; cursor:pointer;
+    border:1.5px solid var(--ink-soft); border-radius:50%; background:none;
+    display:flex; align-items:center; justify-content:center; padding:0;
+    transition:border-color .15s, background .15s;
+  }
+  .check:hover{ border-color:var(--accent); }
+  .check svg{ width:11px; height:11px; opacity:0; transition:opacity .15s; }
+  .task.done .check{ background:var(--accent); border-color:var(--accent); }
+  .task.done .check svg{ opacity:1; }
+  .label{ flex:1; cursor:text; word-break:break-word; padding-top:1px; }
+  .task.done .label{ color:var(--ink-soft); text-decoration:line-through; }
+  .label-edit{
+    flex:1; font:inherit; color:var(--ink); background:var(--surface);
+    border:1px solid var(--accent); border-radius:3px; padding:3px 8px;
+  }
+  .meta{ font-family:"IBM Plex Mono", monospace; font-size:0.72rem; color:var(--ink-soft); flex:0 0 auto; padding-top:4px; }
+  .del{
+    flex:0 0 auto; background:none; border:none; cursor:pointer; color:var(--ink-soft);
+    font-size:1.1rem; line-height:1; padding:2px 4px; opacity:0; transition:opacity .15s, color .15s;
+  }
+  li.task:hover .del, li.task:focus-within .del{ opacity:1; }
+  .del:hover{ color:var(--danger); }
+  @media (hover:none){ .del{ opacity:1; } }
+
+  .empty{ padding:56px 8px; text-align:center; color:var(--ink-soft); }
+  .empty strong{ display:block; color:var(--ink); font-family:"Fraunces", serif; font-size:1.15rem; margin-bottom:6px; font-weight:500; }
+
+  .footer-bar{ display:flex; justify-content:flex-end; padding-top:16px; }
+  .clear{ font:inherit; font-size:0.85rem; background:none; border:none; color:var(--ink-soft); cursor:pointer; text-decoration:underline; }
+  .clear:hover{ color:var(--danger); }
+  :focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+  @media (prefers-reduced-motion: reduce){ *{ transition:none !important; } }
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <h1>Tareas</h1>
+    <p class="date" id="today"></p>
+  </header>
+
+  <div class="composer">
+    <input id="input" type="text" placeholder="¿Qué necesitas hacer?" maxlength="120" autocomplete="off" aria-label="Nueva tarea">
+    <button id="add">Agregar</button>
+  </div>
+  <p class="error" id="error" role="alert"></p>
+
+  <div class="toolbar">
+    <div class="filters" role="group" aria-label="Filtrar tareas">
+      <button data-filter="all" aria-pressed="true">Todas</button>
+      <button data-filter="active" aria-pressed="false">Pendientes</button>
+      <button data-filter="done" aria-pressed="false">Completadas</button>
+    </div>
+    <span class="counter" id="counter"></span>
+  </div>
+
+  <ul class="list" id="list"></ul>
+  <div class="footer-bar" id="footerBar" hidden>
+    <button class="clear" id="clearDone">Eliminar completadas</button>
+  </div>
+</div>
+
+<script>
+/* ---------- Estado ---------- */
+const STORAGE_KEY = 'tareas.v1';
+let tasks = [];
+let filter = 'all';
+
+/* ---------- Persistencia ---------- */
+function load(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    tasks = raw ? JSON.parse(raw) : [];
+    if(!Array.isArray(tasks)) tasks = [];
+  }catch(e){
+    tasks = [];
+  }
+  if(tasks.length === 0){
+    tasks = [
+      { id: uid(), text: 'Terminar el portafolio', done: false, created: Date.now() },
+      { id: uid(), text: 'Subir los proyectos a GitHub', done: false, created: Date.now() },
+      { id: uid(), text: 'Repasar Flexbox y Grid', done: true, created: Date.now() },
+    ];
+  }
+}
+function save(){
+  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks)); }
+  catch(e){ showError('No se pudo guardar. Revisa el almacenamiento del navegador.'); }
+}
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+
+/* ---------- Elementos ---------- */
+const $list = document.getElementById('list');
+const $input = document.getElementById('input');
+const $add = document.getElementById('add');
+const $error = document.getElementById('error');
+const $counter = document.getElementById('counter');
+const $footerBar = document.getElementById('footerBar');
+
+/* ---------- Acciones ---------- */
+function addTask(){
+  const text = $input.value.trim();
+  if(!text){ showError('Escribe una tarea antes de agregarla.'); $input.focus(); return; }
+  if(tasks.some(t => t.text.toLowerCase() === text.toLowerCase())){
+    showError('Esa tarea ya está en la lista.'); return;
+  }
+  tasks.unshift({ id: uid(), text, done:false, created: Date.now() });
+  $input.value = '';
+  showError('');
+  save(); render();
+  $input.focus();
+}
+function toggle(id){
+  const t = tasks.find(t => t.id === id);
+  if(t){ t.done = !t.done; save(); render(); }
+}
+function remove(id){
+  tasks = tasks.filter(t => t.id !== id);
+  save(); render();
+}
+function rename(id, text){
+  const t = tasks.find(t => t.id === id);
+  if(!t) return;
+  const clean = text.trim();
+  if(clean) t.text = clean;
+  save(); render();
+}
+function clearDone(){
+  tasks = tasks.filter(t => !t.done);
+  save(); render();
+}
+function showError(msg){ $error.textContent = msg; }
+
+/* ---------- Render ---------- */
+function visible(){
+  if(filter === 'active') return tasks.filter(t => !t.done);
+  if(filter === 'done') return tasks.filter(t => t.done);
+  return tasks;
+}
+function formatDate(ts){
+  const d = new Date(ts);
+  return d.toLocaleDateString('es-ES', { day:'2-digit', month:'short' });
+}
+function render(){
+  const items = visible();
+  $list.innerHTML = '';
+
+  if(items.length === 0){
+    const msg = filter === 'done'
+      ? ['Nada completado aún', 'Marca una tarea como lista y aparecerá aquí.']
+      : filter === 'active'
+      ? ['Todo al día', 'No te queda nada pendiente.']
+      : ['Lista vacía', 'Agrega tu primera tarea arriba.'];
+    const div = document.createElement('div');
+    div.className = 'empty';
+    div.innerHTML = `<strong>${msg[0]}</strong>${msg[1]}`;
+    $list.appendChild(div);
+  }
+
+  items.forEach(task => {
+    const li = document.createElement('li');
+    li.className = 'task' + (task.done ? ' done' : '');
+    li.dataset.id = task.id;
+
+    const btn = document.createElement('button');
+    btn.className = 'check';
+    btn.setAttribute('aria-label', task.done ? 'Marcar como pendiente' : 'Marcar como completada');
+    btn.innerHTML = '<svg viewBox="0 0 12 12" fill="none"><path d="M1 6l3.2 3.2L11 2.5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    btn.addEventListener('click', () => toggle(task.id));
+
+    const span = document.createElement('span');
+    span.className = 'label';
+    span.textContent = task.text;
+    span.title = 'Doble clic para editar';
+    span.addEventListener('dblclick', () => startEdit(li, task));
+
+    const meta = document.createElement('span');
+    meta.className = 'meta';
+    meta.textContent = formatDate(task.created);
+
+    const del = document.createElement('button');
+    del.className = 'del';
+    del.textContent = '×';
+    del.setAttribute('aria-label', 'Eliminar tarea');
+    del.addEventListener('click', () => remove(task.id));
+
+    li.append(btn, span, meta, del);
+    $list.appendChild(li);
+  });
+
+  const pending = tasks.filter(t => !t.done).length;
+  $counter.textContent = `${pending} pendiente${pending === 1 ? '' : 's'} / ${tasks.length} total`;
+  $footerBar.hidden = !tasks.some(t => t.done);
+}
+
+function startEdit(li, task){
+  const input = document.createElement('input');
+  input.className = 'label-edit';
+  input.value = task.text;
+  li.replaceChild(input, li.querySelector('.label'));
+  input.focus();
+  input.setSelectionRange(input.value.length, input.value.length);
+
+  const commit = () => rename(task.id, input.value);
+  input.addEventListener('blur', commit, { once:true });
+  input.addEventListener('keydown', e => {
+    if(e.key === 'Enter') input.blur();
+    if(e.key === 'Escape'){ input.removeEventListener('blur', commit); render(); }
+  });
+}
+
+/* ---------- Eventos ---------- */
+$add.addEventListener('click', addTask);
+$input.addEventListener('keydown', e => { if(e.key === 'Enter') addTask(); });
+$input.addEventListener('input', () => { if($error.textContent) showError(''); });
+document.getElementById('clearDone').addEventListener('click', clearDone);
+document.querySelectorAll('.filters button').forEach(b => {
+  b.addEventListener('click', () => {
+    filter = b.dataset.filter;
+    document.querySelectorAll('.filters button').forEach(x =>
+      x.setAttribute('aria-pressed', String(x === b)));
+    render();
+  });
+});
+
+/* ---------- Inicio ---------- */
+document.getElementById('today').textContent =
+  new Date().toLocaleDateString('es-ES', { weekday:'long', day:'numeric', month:'long' });
+load();
+render();
+</script>
+</body>
+</html>
