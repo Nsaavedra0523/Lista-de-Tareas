@@ -4,7 +4,7 @@ Aplicación de tareas pendientes construida con JavaScript puro. Permite crear, 
 
 **Demo en vivo:** [https://lista-de-tareas-puce-kappa.vercel.app/]
 
-![Captura de la app](./screenshot.png)
+![Captura de la app](Screenshot.png)
 
 ## Funcionalidades
 
