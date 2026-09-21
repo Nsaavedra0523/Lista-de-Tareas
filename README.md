@@ -2,7 +2,7 @@
 
 Aplicación de tareas pendientes construida con JavaScript puro. Permite crear, completar, editar y eliminar tareas, con persistencia en el navegador y filtros por estado.
 
-**Demo en vivo:** [pega aquí tu link de Vercel/Netlify]
+**Demo en vivo:** [https://lista-de-tareas-puce-kappa.vercel.app/]
 
 ![Captura de la app](./screenshot.png)
 
